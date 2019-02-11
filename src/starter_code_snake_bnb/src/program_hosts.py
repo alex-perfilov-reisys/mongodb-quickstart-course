@@ -1,6 +1,7 @@
 from colorama import Fore
 from infrastructure.switchlang import switch
 import infrastructure.state as state
+import services.data_service as svc
 
 
 def run():
@@ -47,29 +48,49 @@ def show_commands():
 
 def create_account():
     print(' ****************** REGISTER **************** ')
-    # TODO: Get name & email
-    # TODO: Create account, set as logged in.
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    name = input('Your name? ')
+    email = input('Your email? ')
+
+    old_account = svc.find_account_by_email(email)
+    if old_account:
+        error_msg(f"FATAL: email {email} already exists")
+        return
+
+    state.active_account = svc.create_account(name, email)
+    success_msg(f"SUCCESS: User created with id {state.active_account.id}")
 
 
 def log_into_account():
     print(' ****************** LOGIN **************** ')
 
-    # TODO: Get email
-    # TODO: Find account in DB, set as logged in.
+    email = input("Your email?").lower().strip()
+    account = svc.find_account_by_email(email)
+    if not account:
+        error_msg(f"Could not find user with email {email}")
+        return
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    state.active_account = account
+    success_msg("Logged in.")
 
 
 def register_cage():
     print(' ****************** REGISTER CAGE **************** ')
 
-    # TODO: Require an account
-    # TODO: Get info about cage
-    # TODO: Save cage to DB.
+    if not state.active_account:
+        error_msg("Log in first")
+        return
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    meters = input("How many square meters in the cage? ")
+    if not meters:
+        error_msg("Cancelled")
+        return
+
+    meters = float(meters)
+    carpeted = input("Capreted? [y/n] ").lower().startswith('y')
+    has_toys = input("Has toys? [y/n] ").lower().startswith('y')
+    allow_dangerous = input("Allow venomous snakes? [y/n] ").lower().startswith('y')
+    name = input("New cage name: ")
 
 
 def list_cages(supress_header=False):
